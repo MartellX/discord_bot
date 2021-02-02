@@ -1,1 +1,0 @@
-bot: bin/MartellX/discord_bot
