@@ -3,6 +3,7 @@ package vk
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"net/http"
@@ -97,6 +98,8 @@ func SearchAudio(search string) (result []*Track, err error) {
 
 		items = append(items, &track)
 	}
+
+	fmt.Println(items[0])
 
 	return items, nil
 
