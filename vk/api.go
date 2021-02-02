@@ -84,7 +84,10 @@ func SearchAudio(search string) (result []*Track, err error) {
 	}
 
 	res := gjson.GetBytes(body, "response")
-
+	if !res.Exists() {
+		err := gjson.GetBytes(body, "error")
+		return nil, errors.New(err.Get("error_msg").String())
+	}
 	count := res.Get("count").Int()
 
 	items := make([]*Track, 0, count)
