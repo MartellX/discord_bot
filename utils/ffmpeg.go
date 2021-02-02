@@ -5,8 +5,10 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"time"
 
 	"layeh.com/gopus"
@@ -18,7 +20,12 @@ func init() {
 	if runtime.GOOS == "windows" {
 		ffmpegPath = "ffmpeg.exe"
 	} else {
-		ffmpegPath = "ffmpeg"
+		path, ok := os.LookupEnv("FFMPEG_PATH")
+		if !ok {
+			ffmpegPath = "ffmpeg"
+		} else {
+			ffmpegPath = path
+		}
 	}
 }
 
@@ -77,6 +84,18 @@ func (ae *AudioEncoder) SetInput(input string, customParams string) {
 		return
 	}
 
+	isLogs, ok := os.LookupEnv("CMD_LOG")
+
+	if ok {
+		isLog, err := strconv.ParseBool(isLogs)
+		if err == nil {
+			if isLog {
+				ae.ffmpegExec.Stderr = os.Stderr
+			} else {
+				ae.ffmpegExec.Stderr = nil
+			}
+		}
+	}
 	//ae.ffmpegExec.Stderr = os.Stderr
 
 	err = ae.ffmpegExec.Start()
