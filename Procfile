@@ -1,1 +1,1 @@
-bot: discord_bot
+bot: bin/discord_bot
