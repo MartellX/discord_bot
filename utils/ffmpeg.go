@@ -98,6 +98,7 @@ func (ae *AudioEncoder) SetInput(input string, customParams string) {
 	}
 	//ae.ffmpegExec.Stderr = os.Stderr
 
+	fmt.Println("Running command:\n", ae.ffmpegExec.String())
 	err = ae.ffmpegExec.Start()
 
 	ffmpegbuf := bufio.NewReaderSize(ffmpegout, 16834)
