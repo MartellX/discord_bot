@@ -99,7 +99,7 @@ func SearchAudio(search string) (result []*Track, err error) {
 		items = append(items, &track)
 	}
 
-	fmt.Println(items[0])
+	fmt.Println(items[0].Url)
 
 	return items, nil
 
