@@ -1,0 +1,1 @@
+bot: bin/discord_bot
