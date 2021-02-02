@@ -92,14 +92,15 @@ func SearchAudio(search string) (result []*Track, err error) {
 	count := res.Get("count").Int()
 
 	items := make([]*Track, 0, count)
-	for _, re := range res.Get("items").Array() {
+	for i, re := range res.Get("items").Array() {
+		if i == 0 {
+			fmt.Println(re.Raw)
+		}
 		track := Track{}
 		json.Unmarshal([]byte(re.Raw), &track)
 
 		items = append(items, &track)
 	}
-
-	fmt.Println(items[0].Url)
 
 	return items, nil
 

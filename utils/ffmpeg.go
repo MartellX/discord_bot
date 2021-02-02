@@ -77,6 +77,7 @@ func (ae *AudioEncoder) SetInput(input string, customParams string) {
 	// 1 - pausing it
 	// 2 - run status
 	ae.status = 2
+
 	ae.ffmpegExec = exec.Command(ffmpegPath, "-i", input, "-f", "s16le", "-ar", "48000", "-ac", "2", "pipe:1")
 	ffmpegout, err := ae.ffmpegExec.StdoutPipe()
 	if err != nil {
