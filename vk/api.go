@@ -72,7 +72,7 @@ func SearchAudio(search string) (result []*Track, err error) {
 	}
 
 	request.Header.Add("User-Agent", "KateMobileAndroid/69 lite-485 (Android 10; SDK 29; arm64-v8a; Xiaomi IN2013; ru)")
-
+	fmt.Println("Sending request:", request.URL)
 	resp, err := client.Do(request)
 	if err != nil {
 		return nil, err
@@ -136,7 +136,7 @@ func GetPlaylist(rawurl string) (result []*Track, err error) {
 	}
 
 	request.Header.Add("User-Agent", "KateMobileAndroid/69 lite-485 (Android 10; SDK 29; arm64-v8a; Xiaomi IN2013; ru)")
-
+	fmt.Println("Sending request:", request.URL)
 	resp, err := client.Do(request)
 	if err != nil {
 		return nil, err
