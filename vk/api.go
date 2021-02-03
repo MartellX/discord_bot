@@ -15,6 +15,62 @@ import (
 )
 
 var token, _ = os.LookupEnv("VK_TOKEN")
+var login, _ = os.LookupEnv("VK_LOGIN")
+var passwd, _ = os.LookupEnv("VK_PASSWD")
+
+func init() {
+	if login != "" && passwd != "" {
+		tokenVk := getOfficialVKToken(login, passwd)
+		if tokenVk != "" {
+			token = tokenVk
+			fmt.Println("Token successfully set")
+		}
+	}
+}
+
+func getOfficialVKToken(login, password string) string {
+
+	u, err := url.Parse("https://oauth.vk.com/token")
+
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	query := u.Query()
+	query.Add("grant_type", "password")
+	query.Add("client_id", "2274003")
+	query.Add("client_secret", "hHbZxrka2uZ6jB1inYsH")
+	query.Add("username", login)
+	query.Add("password", password)
+	query.Add("v", "5.126")
+	query.Add("lang", "en")
+	query.Add("scope", "audio,offline")
+	u.RawQuery = query.Encode()
+
+	request, err := http.NewRequest(http.MethodGet, u.String(), nil)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	fmt.Println("Sending request:", request.URL)
+	resp, err := client.Do(request)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	fmt.Println(string(body))
+
+	return gjson.GetBytes(body, "access_token").String()
+}
 
 type Track struct {
 	Artist     string `json:"artist"`
@@ -44,7 +100,29 @@ func (tr Track) GetDuration() time.Duration {
 	return dur
 }
 
-var client = http.Client{}
+var client http.Client = http.Client{}
+
+//func init() {
+//	tbProxyURL, err := url.Parse("socks5://127.0.0.1:9050")
+//	if err != nil {
+//		fmt.Printf("Failed to parse proxy URL: %v\n", err)
+//	}
+//
+//	// Get a proxy Dialer that will create the connection on our
+//	// behalf via the SOCKS5 proxy.  Specify the authentication
+//	// and re-create the dialer/transport/client if tor's
+//	// IsolateSOCKSAuth is needed.
+//	tbDialer, err := proxy.FromURL(tbProxyURL, proxy.Direct)
+//	if err != nil {
+//		fmt.Printf("Failed to obtain proxy dialer: %v\n", err)
+//	}
+//
+//	// Make a http.Transport that uses the proxy dialer, and a
+//	// http.Client that uses the transport.
+//	tbTransport := &http.Transport{Dial: tbDialer.Dial}
+//	client = http.Client{Transport: tbTransport}
+//
+//}
 
 func GetAudioById(id string) {
 
@@ -66,12 +144,12 @@ func SearchAudio(search string) (result []*Track, err error) {
 	u.RawQuery = query.Encode()
 
 	request, err := http.NewRequest(http.MethodGet, u.String(), nil)
-
 	if err != nil {
 		return nil, err
 	}
 
-	request.Header.Add("User-Agent", "KateMobileAndroid/69 lite-485 (Android 10; SDK 29; arm64-v8a; Xiaomi IN2013; ru)")
+	//request.Header.Add("User-Agent", "KateMobileAndroid/69 lite-485 (Android 10; SDK 29; arm64-v8a; Xiaomi IN2013; ru)")
+	request.Header.Add("User-Agent", "VKAndroidApp/5.52-4543 (Android 5.1.1; SDK 22; x86_64; unknown Android SDK built for x86_64; en; 320x240)")
 	fmt.Println("Sending request:", request.URL)
 	resp, err := client.Do(request)
 	if err != nil {
@@ -135,7 +213,8 @@ func GetPlaylist(rawurl string) (result []*Track, err error) {
 		return nil, err
 	}
 
-	request.Header.Add("User-Agent", "KateMobileAndroid/69 lite-485 (Android 10; SDK 29; arm64-v8a; Xiaomi IN2013; ru)")
+	//request.Header.Add("User-Agent", "KateMobileAndroid/69 lite-485 (Android 10; SDK 29; arm64-v8a; Xiaomi IN2013; ru)")
+	request.Header.Add("User-Agent", "VKAndroidApp/5.52-4543 (Android 5.1.1; SDK 22; x86_64; unknown Android SDK built for x86_64; en; 320x240)")
 	fmt.Println("Sending request:", request.URL)
 	resp, err := client.Do(request)
 	if err != nil {
@@ -160,7 +239,7 @@ func GetPlaylist(rawurl string) (result []*Track, err error) {
 		items = append(items, &track)
 	}
 
-	fmt.Println(string(body))
+	fmt.Println("Response:\n", string(body))
 
 	return items, nil
 }

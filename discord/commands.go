@@ -105,7 +105,8 @@ func onPlay(ctx *dgc.Ctx) {
 		isPlaylist = true
 	}
 	if err != nil {
-		ctx.RespondText("Error: " + err.Error())
+		fmt.Println(err)
+		ctx.RespondText("Произошла ошибка")
 		return
 	}
 	if len(tracks) <= 0 {
@@ -139,7 +140,8 @@ func onVksearch(ctx *dgc.Ctx) {
 
 	tracks, err := vk.SearchAudio(searchArg)
 	if err != nil {
-		ctx.RespondText("Error: " + err.Error())
+		fmt.Println(err)
+		ctx.RespondText("Произошла ошибка")
 		return
 	}
 	if len(tracks) <= 0 {
