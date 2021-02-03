@@ -93,12 +93,14 @@ func onPlay(ctx *dgc.Ctx) {
 
 	searchArg := ctx.Arguments.Raw()
 
+	fmt.Println("Gettin argument: " + searchArg)
 	var tracks []*vk.Track
 	_, err := url.ParseRequestURI(searchArg)
 	isPlaylist := false
 	if err != nil {
 		tracks, err = vk.SearchAudio(searchArg)
 	} else {
+		fmt.Println("This is playlist")
 		tracks, err = vk.GetPlaylist(searchArg)
 		isPlaylist = true
 	}
