@@ -160,7 +160,7 @@ func GetPlaylist(rawurl string) (result []*Track, err error) {
 		items = append(items, &track)
 	}
 
-	fmt.Println(body)
+	fmt.Println(string(body))
 
 	return items, nil
 }
