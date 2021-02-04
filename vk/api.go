@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -17,10 +18,11 @@ import (
 var token, _ = os.LookupEnv("VK_TOKEN")
 var login, _ = os.LookupEnv("VK_LOGIN")
 var passwd, _ = os.LookupEnv("VK_PASSWD")
+var useragent = "KateMobileAndroid/56 lite-460 (Android 4.4.2; SDK 19; x86; unknown Android SDK built for x86; en)"
 
 func init() {
 	if login != "" && passwd != "" {
-		tokenVk := getOfficialVKToken(login, passwd)
+		tokenVk := getKateToken(login, passwd)
 		if tokenVk != "" {
 			token = tokenVk
 			fmt.Println("Token successfully set")
@@ -28,48 +30,18 @@ func init() {
 	}
 }
 
-func getOfficialVKToken(login, password string) string {
+func getKateToken(login, password string) string {
+	pythonexec := exec.Command("python", "gettingtoken.py", login, password)
 
-	u, err := url.Parse("https://oauth.vk.com/token")
-
+	pythonexec.Stderr = os.Stderr
+	pythonOut, err := pythonexec.Output()
 	if err != nil {
 		fmt.Println(err)
 		return ""
 	}
-
-	query := u.Query()
-	query.Add("grant_type", "password")
-	query.Add("client_id", "2274003")
-	query.Add("client_secret", "hHbZxrka2uZ6jB1inYsH")
-	query.Add("username", login)
-	query.Add("password", password)
-	query.Add("v", "5.126")
-	query.Add("lang", "en")
-	query.Add("scope", "audio,offline")
-	u.RawQuery = query.Encode()
-
-	request, err := http.NewRequest(http.MethodGet, u.String(), nil)
-	if err != nil {
-		fmt.Println(err)
-		return ""
-	}
-	fmt.Println("Sending request:", request.URL)
-	resp, err := client.Do(request)
-	if err != nil {
-		fmt.Println(err)
-		return ""
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println(err)
-		return ""
-	}
-
-	fmt.Println(string(body))
-
-	return gjson.GetBytes(body, "access_token").String()
+	fmt.Println(string(pythonOut))
+	token := strings.TrimSpace(string(pythonOut))
+	return token
 }
 
 type Track struct {
@@ -149,7 +121,7 @@ func SearchAudio(search string) (result []*Track, err error) {
 	}
 
 	//request.Header.Add("User-Agent", "KateMobileAndroid/69 lite-485 (Android 10; SDK 29; arm64-v8a; Xiaomi IN2013; ru)")
-	request.Header.Add("User-Agent", "VKAndroidApp/5.52-4543 (Android 5.1.1; SDK 22; x86_64; unknown Android SDK built for x86_64; en; 320x240)")
+	request.Header.Add("User-Agent", useragent)
 	fmt.Println("Sending request:", request.URL)
 	resp, err := client.Do(request)
 	if err != nil {
@@ -214,7 +186,7 @@ func GetPlaylist(rawurl string) (result []*Track, err error) {
 	}
 
 	//request.Header.Add("User-Agent", "KateMobileAndroid/69 lite-485 (Android 10; SDK 29; arm64-v8a; Xiaomi IN2013; ru)")
-	request.Header.Add("User-Agent", "VKAndroidApp/5.52-4543 (Android 5.1.1; SDK 22; x86_64; unknown Android SDK built for x86_64; en; 320x240)")
+	request.Header.Add("User-Agent", useragent)
 	fmt.Println("Sending request:", request.URL)
 	resp, err := client.Do(request)
 	if err != nil {
