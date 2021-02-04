@@ -22,6 +22,7 @@ var useragent = "KateMobileAndroid/56 lite-460 (Android 4.4.2; SDK 19; x86; unkn
 
 func init() {
 	if login != "" && passwd != "" {
+		fmt.Println(login, passwd)
 		tokenVk := getKateToken(login, passwd)
 		if tokenVk != "" {
 			token = tokenVk
