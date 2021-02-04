@@ -33,6 +33,7 @@ func init() {
 				break
 			}
 			if tries > 10 {
+				fmt.Println("Tries exceeded, using default token")
 				break
 			}
 			time.Sleep(time.Second * 30)
