@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	_ "github.com/Bogdan-D/go-socks4"
 	"github.com/tidwall/gjson"
+	"golang.org/x/net/proxy"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -20,7 +22,18 @@ var login, _ = os.LookupEnv("VK_LOGIN")
 var passwd, _ = os.LookupEnv("VK_PASSWD")
 var useragent = "KateMobileAndroid/56 lite-460 (Android 4.4.2; SDK 19; x86; unknown Android SDK built for x86; en)"
 
+var client http.Client = http.Client{}
+
 func init() {
+	proxies, ok := os.LookupEnv("PROXIES")
+	if ok {
+		for _, proxy := range strings.Split(proxies, ";") {
+			if connectProxy(proxy) {
+				break
+			}
+		}
+	}
+
 	if login != "" && passwd != "" {
 		//fmt.Println(login, passwd)
 		tries := 0
@@ -38,6 +51,40 @@ func init() {
 			}
 			time.Sleep(time.Second * 30)
 		}
+	}
+}
+
+func connectProxy(proxyURL string) bool {
+
+	tbProxyURL, err := url.Parse(proxyURL)
+	if err != nil {
+		fmt.Printf("Failed to parse proxy URL: %v\n", err)
+	}
+
+	var tbTransport *http.Transport
+	if strings.HasPrefix(tbProxyURL.Scheme, "socks") {
+		tbDialer, err := proxy.FromURL(tbProxyURL, proxy.Direct)
+		if err != nil {
+			fmt.Printf("Failed to obtain proxy dialer: %v\n", err)
+		}
+
+		tbTransport = &http.Transport{Dial: tbDialer.Dial}
+	} else {
+		tbTransport = &http.Transport{Proxy: http.ProxyURL(tbProxyURL)}
+	}
+
+	client = http.Client{Transport: tbTransport}
+	fmt.Println("Проверяю прокси", tbProxyURL.String())
+	req, _ := http.NewRequest(http.MethodGet, "https://api.myip.com/", nil)
+	if resp, err := client.Do(req); err != nil {
+		fmt.Println(err)
+		fmt.Println("\nПодключение через прокси не удалось")
+		return false
+	} else {
+		fmt.Println("Подключение успешно")
+		body, _ := ioutil.ReadAll(resp.Body)
+		fmt.Println(string(body))
+		return true
 	}
 }
 
@@ -82,30 +129,6 @@ func (tr Track) GetDuration() time.Duration {
 	dur, _ := time.ParseDuration(strconv.FormatInt(tr.Duration, 10) + "s")
 	return dur
 }
-
-var client http.Client = http.Client{}
-
-//func init() {
-//	tbProxyURL, err := url.Parse("socks5://127.0.0.1:9050")
-//	if err != nil {
-//		fmt.Printf("Failed to parse proxy URL: %v\n", err)
-//	}
-//
-//	// Get a proxy Dialer that will create the connection on our
-//	// behalf via the SOCKS5 proxy.  Specify the authentication
-//	// and re-create the dialer/transport/client if tor's
-//	// IsolateSOCKSAuth is needed.
-//	tbDialer, err := proxy.FromURL(tbProxyURL, proxy.Direct)
-//	if err != nil {
-//		fmt.Printf("Failed to obtain proxy dialer: %v\n", err)
-//	}
-//
-//	// Make a http.Transport that uses the proxy dialer, and a
-//	// http.Client that uses the transport.
-//	tbTransport := &http.Transport{Dial: tbDialer.Dial}
-//	client = http.Client{Transport: tbTransport}
-//
-//}
 
 func GetAudioById(id string) {
 

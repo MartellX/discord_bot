@@ -1,3 +1,5 @@
+github.com/Bogdan-D/go-socks4 v0.0.0-20160129084303-092515145880 h1:HGmVNzqQu2W7R1qRjT6YO6iBfPPIFh09NoEko6P/U1A=
+github.com/Bogdan-D/go-socks4 v0.0.0-20160129084303-092515145880/go.mod h1:fYqtzaYlWbHFwxCDy8BiFMSv14hwJCYZbhxjLaSHf1A=
 github.com/Kintar/dgc v1.0.7 h1:BV/Q5wHb/lLpF4hiJo47jeAVRv76lqLb7+IIHOGFEaI=
 github.com/Kintar/dgc v1.0.7/go.mod h1:1LPeYb932DxRWTVGfsXbVQLdbLAf/nh1c7IhkcHBCXk=
 github.com/bwmarrin/discordgo v0.20.3/go.mod h1:O9S4p+ofTFwB02em7jkpkV8M3R0/PUVOwN61zSZ0r4Q=
