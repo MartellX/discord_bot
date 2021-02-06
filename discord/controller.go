@@ -230,7 +230,7 @@ func initRouter(session *discordgo.Session) {
 }
 
 func onReady(s *discordgo.Session, event *discordgo.Ready) {
-	s.UpdateStatus(0, "yo")
+	s.UpdateStatus(0, "yo help")
 }
 
 func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {

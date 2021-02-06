@@ -8,6 +8,7 @@ import (
 	"github.com/tidwall/gjson"
 	"golang.org/x/net/proxy"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -22,8 +23,9 @@ var login, _ = os.LookupEnv("VK_LOGIN")
 var passwd, _ = os.LookupEnv("VK_PASSWD")
 var useragent = "KateMobileAndroid/56 lite-460 (Android 4.4.2; SDK 19; x86; unknown Android SDK built for x86; en)"
 
+var timeout = time.Second * 20
 var client http.Client = http.Client{
-	Timeout: time.Second * 20,
+	Timeout: timeout,
 }
 
 var proxies []string
@@ -33,6 +35,9 @@ func init() {
 	proxiesStr, ok := os.LookupEnv("PROXIES")
 	if ok {
 		proxies = strings.Split(proxiesStr, ";")
+		rand.Shuffle(len(proxies), func(i, j int) {
+			proxies[i], proxies[j] = proxies[j], proxies[i]
+		})
 		SwitchProxy()
 	}
 
@@ -41,6 +46,7 @@ func init() {
 		tries := 0
 		for {
 			tries++
+			fmt.Println("Tries getting tokens:", tries)
 			tokenVk := getKateToken(login, passwd)
 			if tokenVk != "" {
 				token = tokenVk
@@ -51,7 +57,7 @@ func init() {
 				fmt.Println("Tries exceeded, using default token")
 				break
 			}
-			time.Sleep(time.Second * 15)
+			time.Sleep(time.Second * 20)
 		}
 	}
 }
@@ -87,13 +93,18 @@ func connectProxy(proxyURL string) bool {
 		tbTransport = &http.Transport{Proxy: http.ProxyURL(tbProxyURL)}
 	}
 
-	client = http.Client{Transport: tbTransport}
+	client = http.Client{
+		Transport: tbTransport,
+		Timeout:   timeout,
+	}
 	fmt.Println("Проверяю прокси", tbProxyURL.String())
 	req, _ := http.NewRequest(http.MethodGet, "https://api.myip.com/", nil)
 	if resp, err := client.Do(req); err != nil {
 		fmt.Println(err)
 		fmt.Println("\nПодключение через прокси не удалось")
-		client = http.Client{}
+		client = http.Client{
+			Timeout: timeout,
+		}
 		return false
 	} else {
 		fmt.Println("Подключение успешно")
