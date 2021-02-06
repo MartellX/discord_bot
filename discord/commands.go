@@ -21,10 +21,12 @@ func onHelp(ctx *dgc.Ctx) {
 	for i, command := range commands {
 		if i%5 == 0 {
 			message = &discordgo.MessageEmbed{
-				Title:       "Список команд (" + strconv.Itoa(i/5+1) + "/" + strconv.Itoa((len(commands)-1)/5+1) + ")",
-				Description: "Напишите `yo help <имя команды>` для помощи по конкректной команде",
-				Color:       0x0062ff,
-				Fields:      []*discordgo.MessageEmbedField{},
+				Title: "Список команд (" + strconv.Itoa(i/5+1) + "/" + strconv.Itoa((len(commands)-1)/5+1) + ")",
+				Description: "Напишите `yo help <имя команды>` для помощи по конкректной команде\n" +
+					"Для получения большинства треков с вк используется прокси (если оно задано), поэтому иногда ответы могут быть долгими (до 20 минут). " +
+					"Используйте `yo changeproxy` для попытки смены прокси. Прокси используется только для получения информации с ВК, не для воспроизведения и всего остального.",
+				Color:  0x0062ff,
+				Fields: []*discordgo.MessageEmbedField{},
 			}
 			pages = append(pages, message)
 		}
@@ -384,8 +386,10 @@ func onTime(ctx *dgc.Ctx) {
 
 func onSwitchProxy(ctx *dgc.Ctx) {
 	ctx.RespondText("Пытаюсь сменить прокси")
-	if vk.SwitchProxy() {
+	if ok, err := vk.SwitchProxy(); ok {
 		ctx.RespondText("Прокси сменён")
+	} else if err != nil {
+		fmt.Println("Прокси уже сменяется")
 	} else {
 		ctx.RespondText("Не получилось сменить прокси, использую стандартное подключение (с воспроизведением треков с лицензией могут быть проблемы)")
 	}

@@ -15,6 +15,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -30,6 +31,9 @@ var client http.Client = http.Client{
 
 var proxies []string
 var proxyIndex = 0
+
+var proxyChanging = sync.Mutex{}
+var isProxyChanging = false
 
 func init() {
 	proxiesStr, ok := os.LookupEnv("PROXIES")
@@ -62,16 +66,26 @@ func init() {
 	}
 }
 
-func SwitchProxy() bool {
+func SwitchProxy() (bool, error) {
+	if isProxyChanging == false {
+		return false, errors.New("already changing")
+	}
+
+	proxyChanging.Lock()
+	isProxyChanging = true
+	defer func() {
+		isProxyChanging = false
+		proxyChanging.Unlock()
+	}()
 	for i := 0; i < len(proxies); i++ {
 		proxyIndex++
 		proxyIndex %= len(proxies)
 		if connectProxy(proxies[proxyIndex]) {
-			return true
+			return true, nil
 			break
 		}
 	}
-	return false
+	return false, nil
 }
 
 func connectProxy(proxyURL string) bool {
