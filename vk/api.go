@@ -42,7 +42,10 @@ func init() {
 		rand.Shuffle(len(proxies), func(i, j int) {
 			proxies[i], proxies[j] = proxies[j], proxies[i]
 		})
-		SwitchProxy()
+		_, err := SwitchProxy()
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	if login != "" && passwd != "" {
@@ -67,7 +70,7 @@ func init() {
 }
 
 func SwitchProxy() (bool, error) {
-	if isProxyChanging == false {
+	if isProxyChanging {
 		return false, errors.New("already changing")
 	}
 
