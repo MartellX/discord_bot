@@ -22,16 +22,18 @@ var login, _ = os.LookupEnv("VK_LOGIN")
 var passwd, _ = os.LookupEnv("VK_PASSWD")
 var useragent = "KateMobileAndroid/56 lite-460 (Android 4.4.2; SDK 19; x86; unknown Android SDK built for x86; en)"
 
-var client http.Client = http.Client{}
+var client http.Client = http.Client{
+	Timeout: time.Second * 20,
+}
+
+var proxies []string
+var proxyIndex = 0
 
 func init() {
-	proxies, ok := os.LookupEnv("PROXIES")
+	proxiesStr, ok := os.LookupEnv("PROXIES")
 	if ok {
-		for _, proxy := range strings.Split(proxies, ";") {
-			if connectProxy(proxy) {
-				break
-			}
-		}
+		proxies = strings.Split(proxiesStr, ";")
+		SwitchProxy()
 	}
 
 	if login != "" && passwd != "" {
@@ -52,6 +54,18 @@ func init() {
 			time.Sleep(time.Second * 30)
 		}
 	}
+}
+
+func SwitchProxy() bool {
+	for i := 0; i < len(proxies); i++ {
+		proxyIndex++
+		proxyIndex %= len(proxies)
+		if connectProxy(proxies[proxyIndex]) {
+			return true
+			break
+		}
+	}
+	return false
 }
 
 func connectProxy(proxyURL string) bool {
@@ -79,6 +93,7 @@ func connectProxy(proxyURL string) bool {
 	if resp, err := client.Do(req); err != nil {
 		fmt.Println(err)
 		fmt.Println("\nПодключение через прокси не удалось")
+		client = http.Client{}
 		return false
 	} else {
 		fmt.Println("Подключение успешно")
@@ -182,8 +197,9 @@ func SearchAudio(search string) (result []*Track, err error) {
 		}
 		track := Track{}
 		json.Unmarshal([]byte(re.Raw), &track)
-
-		items = append(items, &track)
+		if track.Url != "" {
+			items = append(items, &track)
+		}
 	}
 
 	return items, nil
@@ -241,8 +257,9 @@ func GetPlaylist(rawurl string) (result []*Track, err error) {
 	for _, re := range res.Get("items").Array() {
 		track := Track{}
 		json.Unmarshal([]byte(re.Raw), &track)
-
-		items = append(items, &track)
+		if track.Url != "" {
+			items = append(items, &track)
+		}
 	}
 
 	fmt.Println("Response:\n", string(body))

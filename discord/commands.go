@@ -60,31 +60,15 @@ func onConnect(ctx *dgc.Ctx) {
 	sess := ctx.Session
 	mess := ctx.Event
 
-	c, err := sess.State.Channel(mess.ChannelID)
+	as, ok := AudioSessions[mess.GuildID]
 
-	if err != nil {
-		return
+	if !ok {
+		as = NewAudioSession(nil, sess, mess.ChannelID, mess.GuildID)
 	}
-	g, err := sess.State.Guild(c.GuildID)
-
-	if err != nil {
-		return
+	err := as.CheckForConnectionAndChangeVC(mess.Message)
+	if (!as.IsPaused) && as.AudioEncoder.Status() != utils.Run && err == nil {
+		as.Play()
 	}
-
-	channelId := ""
-	for _, state := range g.VoiceStates {
-		if state.UserID == mess.Author.ID {
-			channelId = state.ChannelID
-		}
-	}
-
-	_, err = sess.ChannelVoiceJoin(g.ID, channelId, false, true)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	ctx.RespondText("Подключено!")
 }
 
 func onPlay(ctx *dgc.Ctx) {
@@ -120,13 +104,15 @@ func onPlay(ctx *dgc.Ctx) {
 		as = NewAudioSession(nil, sess, event.ChannelID, event.GuildID)
 	}
 
+	prevQueueLen := len(as.Queue)
+
 	if isPlaylist {
 		as.AddTracks(tracks)
 	} else {
 		as.AddTrack(tracks[0])
 	}
 	err = as.CheckForConnectionAndChangeVC(event.Message)
-	if !as.IsPaused && as.AudioEncoder.Status() != utils.Run && err == nil {
+	if (!as.IsPaused || prevQueueLen == 0) && as.AudioEncoder.Status() != utils.Run && err == nil {
 		as.Play()
 	}
 }
@@ -277,6 +263,10 @@ func onSkip(ctx *dgc.Ctx) {
 	event := ctx.Event
 	as, ok := AudioSessions[event.GuildID]
 	if ok {
+		if len(as.Queue) == 0 {
+			ctx.RespondText("Нет треков в очереди!")
+			return
+		}
 		n, err := ctx.Arguments.Get(0).AsInt()
 		if err != nil {
 			ctx.RespondText("Пропускаю `" + as.NowPlaying.Artist + " - " + as.NowPlaying.Title + "`")
@@ -288,7 +278,7 @@ func onSkip(ctx *dgc.Ctx) {
 				Description: "",
 			}
 			if n < 0 {
-				ctx.RespondText("Слишком малое число")
+				ctx.RespondText("Неверный параметр")
 				return
 			}
 			if n > len(as.Queue) {
@@ -302,6 +292,20 @@ func onSkip(ctx *dgc.Ctx) {
 			ctx.RespondEmbed(&message)
 			as.SkipTrackN(n)
 		}
+	}
+}
+
+func onClear(ctx *dgc.Ctx) {
+
+	event := ctx.Event
+	as, ok := AudioSessions[event.GuildID]
+	if ok {
+		if len(as.Queue) == 0 {
+			ctx.RespondText("Нет треков в очереди!")
+			return
+		}
+		as.Clear()
+		ctx.RespondText("Очередь очищена")
 	}
 }
 
@@ -376,4 +380,14 @@ func onTime(ctx *dgc.Ctx) {
 			ctx.RespondText("Осталось `" + (as.Queue.GetFirstTrack().GetDuration() - as.Queue.GetFirstTrack().PlayedTime).String() + "` до конца текущего трека")
 		}
 	}
+}
+
+func onSwitchProxy(ctx *dgc.Ctx) {
+	ctx.RespondText("Пытаюсь сменить прокси")
+	if vk.SwitchProxy() {
+		ctx.RespondText("Прокси сменён")
+	} else {
+		ctx.RespondText("Не получилось сменить прокси, использую стандартное подключение (с воспроизведением треков с лицензией могут быть проблемы)")
+	}
+
 }

@@ -137,13 +137,25 @@ func initRouter(session *discordgo.Session) {
 	router.RegisterCmd(&dgc.Command{
 		Name:        "skip",
 		Aliases:     []string{"s"},
-		Description: "Пропускает трек",
-		Usage:       "skip",
+		Description: "Пропускает трек. Если указано число, пропускает до указанного трека (по порядку в очереди)",
+		Usage:       "skip [<позиция трека>]",
 		Flags:       nil,
 		IgnoreCase:  true,
 		SubCommands: nil,
 		RateLimiter: nil,
 		Handler:     onSkip,
+	})
+
+	router.RegisterCmd(&dgc.Command{
+		Name:        "clear",
+		Aliases:     []string{"s"},
+		Description: "Очищает очередь",
+		Usage:       "clear",
+		Flags:       nil,
+		IgnoreCase:  true,
+		SubCommands: nil,
+		RateLimiter: nil,
+		Handler:     onClear,
 	})
 
 	router.RegisterCmd(&dgc.Command{
@@ -202,6 +214,17 @@ func initRouter(session *discordgo.Session) {
 		SubCommands: nil,
 		RateLimiter: nil,
 		Handler:     onTime,
+	})
+
+	router.RegisterCmd(&dgc.Command{
+		Name:        "switchproxy",
+		Description: "Пытается сменить прокси. Рекомендуется при проблемах с получением треков с вк (ошибки или долгое получение)",
+		Usage:       "switchproxy",
+		Flags:       nil,
+		IgnoreCase:  true,
+		SubCommands: nil,
+		RateLimiter: nil,
+		Handler:     onSwitchProxy,
 	})
 	router.Initialize(session)
 }

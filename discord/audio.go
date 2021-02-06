@@ -131,6 +131,18 @@ func (as *AudioSession) SkipTrackN(n int) {
 	as.Queue.SkipTrackN(n)
 }
 
+func (as *AudioSession) Clear() {
+	if !as.IsPaused {
+		as.Pause()
+	}
+
+	//*as.ffmpegControl = 0
+	as.AudioEncoder.SetStatus(utils.Stop)
+	as.outChannel = nil
+	as.Queue = make([]*vk.Track, 0, 100)
+	as.IsPaused = false
+}
+
 func (as *AudioSession) MoveTrack(from int, to int) {
 	if from == to {
 		return
