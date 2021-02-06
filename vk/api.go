@@ -51,7 +51,7 @@ func init() {
 				fmt.Println("Tries exceeded, using default token")
 				break
 			}
-			time.Sleep(time.Second * 30)
+			time.Sleep(time.Second * 15)
 		}
 	}
 }

@@ -70,7 +70,7 @@ func (ae *AudioEncoder) SetInput(input string, customParams string) {
 		ae.ffmpegExec.Process.Kill()
 	}
 
-	ae.out = make(chan []byte, 8)
+	ae.out = make(chan []byte, 32)
 
 	// statusId response for controlling ffmpeg encoding
 	// 0 - kill encoding
@@ -106,7 +106,7 @@ func (ae *AudioEncoder) SetInput(input string, customParams string) {
 
 	go func() {
 		defer close(ae.out)
-		raw := make(chan []int16, 8)
+		raw := make(chan []int16, 32)
 		go func() {
 			defer func() {
 				close(raw)

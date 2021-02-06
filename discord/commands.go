@@ -364,8 +364,8 @@ func onLeave(ctx *dgc.Ctx) {
 		as, ok := AudioSessions[guild]
 		if ok {
 			as.Pause()
+			as.IsPaused = false
 		}
-
 		vc.Disconnect()
 	}
 
