@@ -8,6 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"math/rand"
 	"net/url"
+	"os"
 	"strconv"
 	"time"
 )
@@ -44,6 +45,16 @@ func onHelp(ctx *dgc.Ctx) {
 	m, _ := ctx.Session.ChannelMessageSendEmbed(ctx.Event.ChannelID, pages[0])
 
 	NewMessage(ctx.Session, nil, m.ID, m.ChannelID, pages, nil)
+
+}
+
+func onLink(ctx *dgc.Ctx) {
+	link, ok := os.LookupEnv("DISCORD_LINK")
+	if ok {
+		ctx.RespondText(link)
+	} else {
+		ctx.RespondText("Ссылка не настроена")
+	}
 
 }
 

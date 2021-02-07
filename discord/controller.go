@@ -58,6 +58,18 @@ func initRouter(session *discordgo.Session) {
 		RateLimiter: nil,
 		Handler:     onHelp,
 	})
+
+	router.RegisterCmd(&dgc.Command{
+		Name:        "link",
+		Aliases:     nil,
+		Description: "Ссылка для добавления бота",
+		Usage:       "link",
+		Flags:       nil,
+		IgnoreCase:  true,
+		SubCommands: nil,
+		RateLimiter: nil,
+		Handler:     onLink,
+	})
 	//router.RegisterCmd(&dgc.Command{
 	//	Name:        "ping",
 	//	Aliases:     nil,
