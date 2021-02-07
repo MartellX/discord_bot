@@ -22,12 +22,16 @@ func onHelp(ctx *dgc.Ctx) {
 	for i, command := range commands {
 		if i%5 == 0 {
 			message = &discordgo.MessageEmbed{
-				Title: "Список команд (" + strconv.Itoa(i/5+1) + "/" + strconv.Itoa((len(commands)-1)/5+1) + ")",
-				Description: "Напишите `yo help <имя команды>` для помощи по конкректной команде\n" +
+				Title:       "Список команд (" + strconv.Itoa(i/5+1) + "/" + strconv.Itoa((len(commands)-1)/5+1) + ")",
+				Description: "",
+				Color:       0x0062ff,
+				Fields:      []*discordgo.MessageEmbedField{},
+			}
+
+			if i == 0 {
+				message.Description = "Напишите `yo help <имя команды>` для помощи по конкректной команде\n" +
 					"Для получения большинства треков с вк используется прокси (если оно задано), поэтому иногда ответы могут быть долгими (до 20 минут). " +
-					"Используйте `yo changeproxy` для попытки смены прокси. Прокси используется только для получения информации с ВК, не для воспроизведения и всего остального.",
-				Color:  0x0062ff,
-				Fields: []*discordgo.MessageEmbedField{},
+					"Используйте `yo changeproxy` для попытки смены прокси. Прокси используется только для получения информации с ВК, не для воспроизведения и всего остального."
 			}
 			pages = append(pages, message)
 		}
