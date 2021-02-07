@@ -129,7 +129,7 @@ func onVksearch(ctx *dgc.Ctx) {
 	tracks, err := vk.SearchAudio(searchArg)
 	if err != nil {
 		fmt.Println(err)
-		ctx.RespondText("Произошла ошибка")
+		ctx.RespondText("Не удалось получить треки с вк. Попробуйте еще раз или смените прокси через `yo switchproxy`")
 		return
 	}
 	if len(tracks) <= 0 {
@@ -287,10 +287,19 @@ func onSkip(ctx *dgc.Ctx) {
 				ctx.RespondText("Слишком большое число (используйте `" + ctx.Router.Prefixes[0] + "clear` для очистки очереди)")
 				return
 			}
-			for _, track := range as.Queue[:n] {
+			displayed := 0
+			for i, track := range as.Queue[:n] {
+				if i >= 10 {
+					break
+				}
 				skipping := "`" + track.Artist + " - " + track.Title + "[" + track.GetDuration().String() + "]`\n"
 				message.Description += skipping
+				displayed = i + 1
 			}
+			if displayed < len(as.Queue[:n]) {
+				message.Description += "\n`...еще " + strconv.Itoa(len(as.Queue[:n])-displayed) + "`"
+			}
+			message.Footer = &discordgo.MessageEmbedFooter{Text: "Всего " + strconv.Itoa(len(as.Queue[:n])) + " пропущено"}
 			ctx.RespondEmbed(&message)
 			as.SkipTrackN(n)
 		}

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"strconv"
 	"time"
 )
 
@@ -78,12 +79,20 @@ func (as *AudioSession) AddTracks(tracks []*vk.Track) {
 		Color:       0x0062ff,
 		Description: "",
 	}
-	for _, track := range tracks {
-		playing := "`" + track.Artist + " - " + track.Title + "[" + track.GetDuration().String() + "]`\n"
-		message.Description += playing
+	displayed := 0
+	for i, track := range tracks {
+		if i < 10 {
+			playing := "`" + track.Artist + " - " + track.Title + "[" + track.GetDuration().String() + "]`\n"
+			message.Description += playing
+			displayed = i + 1
+		}
 		as.Queue.AddTrack(track)
-
 	}
+
+	if displayed < len(tracks) {
+		message.Description += "\n`...еще " + strconv.Itoa(len(tracks)-displayed) + "`"
+	}
+	message.Footer = &discordgo.MessageEmbedFooter{Text: "Всего " + strconv.Itoa(len(tracks)) + " добавлено"}
 
 	as.Session.ChannelMessageSendEmbed(as.ChannelId, &message)
 
@@ -195,10 +204,16 @@ func (as *AudioSession) Play() error {
 
 	as.IsPaused = false
 
+	if as.VC == nil {
+		fmt.Println("VoiceConnection is not set!")
+		return errors.New("VoiceConnection is not set")
+	}
+
 	err := as.VC.Speaking(true)
 
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
 
 	for !as.VC.Ready {

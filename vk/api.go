@@ -36,17 +36,6 @@ var proxyChanging = sync.Mutex{}
 var isProxyChanging = false
 
 func init() {
-	proxiesStr, ok := os.LookupEnv("PROXIES")
-	if ok {
-		proxies = strings.Split(proxiesStr, ";")
-		rand.Shuffle(len(proxies), func(i, j int) {
-			proxies[i], proxies[j] = proxies[j], proxies[i]
-		})
-		_, err := SwitchProxy()
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
 
 	if login != "" && passwd != "" {
 		//fmt.Println(login, passwd)
@@ -65,6 +54,18 @@ func init() {
 				break
 			}
 			time.Sleep(time.Second * 20)
+		}
+	}
+
+	proxiesStr, ok := os.LookupEnv("PROXIES")
+	if ok {
+		proxies = strings.Split(proxiesStr, ";")
+		rand.Shuffle(len(proxies), func(i, j int) {
+			proxies[i], proxies[j] = proxies[j], proxies[i]
+		})
+		_, err := SwitchProxy()
+		if err != nil {
+			fmt.Println(err)
 		}
 	}
 }
@@ -87,6 +88,10 @@ func SwitchProxy() (bool, error) {
 			return true, nil
 			break
 		}
+		client = http.Client{
+			Timeout: timeout,
+		}
+		fmt.Println("Подключение через прокси не удалось")
 	}
 	return false, nil
 }
@@ -117,16 +122,38 @@ func connectProxy(proxyURL string) bool {
 	fmt.Println("Проверяю прокси", tbProxyURL.String())
 	req, _ := http.NewRequest(http.MethodGet, "https://api.myip.com/", nil)
 	if resp, err := client.Do(req); err != nil {
+
 		fmt.Println(err)
-		fmt.Println("\nПодключение через прокси не удалось")
-		client = http.Client{
-			Timeout: timeout,
-		}
 		return false
 	} else {
-		fmt.Println("Подключение успешно")
 		body, _ := ioutil.ReadAll(resp.Body)
 		fmt.Println(string(body))
+
+		// Checking vk
+		u, err := url.Parse("https://api.vk.com/method/account.getInfo")
+		if err != nil {
+			fmt.Println(err)
+			return false
+		}
+
+		query := u.Query()
+		query.Add("access_token", token)
+		query.Add("v", "5.126")
+		u.RawQuery = query.Encode()
+		request, err := http.NewRequest(http.MethodGet, u.String(), nil)
+		if err != nil {
+			fmt.Println(err)
+			return false
+		}
+		responseVk, err := client.Do(request)
+		if err != nil {
+			fmt.Println(err)
+			return false
+		}
+		body, _ = ioutil.ReadAll(responseVk.Body)
+		fmt.Println(gjson.GetBytes(body, "response.country").Str)
+
+		fmt.Println("Подключение успешно")
 		return true
 	}
 }

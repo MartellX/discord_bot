@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-var lastMessage *Message
+var lastMessages = map[string]*Message{}
 
 type Message struct {
 	session      *discordgo.Session
@@ -40,14 +40,10 @@ func NewMessage(session *discordgo.Session, audioSession *AudioSession, messageI
 	session.MessageReactionAdd(channelId, messageId, ReactEmojies.Close)
 	session.MessageReactionAdd(channelId, messageId, ReactEmojies.Next)
 	m := &Message{session: session, audioSession: audioSession, messageId: messageId, channelId: channelId, pages: pages, data: info, currPage: 1}
-
-	if lastMessage != nil {
-		lastMessage.DestroyMessage()
-		lastMessage = m
+	if last, ok := lastMessages[channelId]; ok {
+		last.DestroyMessage()
 	}
-
-	lastMessage = m
-
+	lastMessages[channelId] = m
 	session.AddHandlerOnce(m.handleEmotesAdd)
 	session.AddHandlerOnce(m.handleEmotesDel)
 	return m
