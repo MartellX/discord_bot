@@ -153,6 +153,12 @@ func connectProxy(proxyURL string) bool {
 		body, _ = ioutil.ReadAll(responseVk.Body)
 		fmt.Println(gjson.GetBytes(body, "response.country").Str)
 
+		_, err = SearchAudio("Infected")
+		if err != nil {
+			fmt.Println(err)
+			return false
+		}
+
 		fmt.Println("Подключение успешно")
 		return true
 	}
