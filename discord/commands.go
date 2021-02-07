@@ -92,7 +92,7 @@ func onPlay(ctx *dgc.Ctx) {
 	}
 	if err != nil {
 		fmt.Println(err)
-		ctx.RespondText("Произошла ошибка")
+		ctx.RespondText("Не удалось получить треки с вк. Попробуйте еще раз или смените прокси через `yo switchproxy`")
 		return
 	}
 	if len(tracks) <= 0 {
