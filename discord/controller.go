@@ -47,6 +47,19 @@ func initRouter(session *discordgo.Session) {
 			ctx.RespondText("Yo!")
 		},
 	})
+
+	router.RegisterMiddleware(func(next dgc.ExecutionHandler) dgc.ExecutionHandler {
+		return func(ctx *dgc.Ctx) {
+			defer func() {
+				err := recover()
+				if err != nil {
+					fmt.Println(err)
+				}
+			}()
+			next(ctx)
+		}
+	})
+
 	router.RegisterCmd(&dgc.Command{
 		Name:        "help",
 		Aliases:     nil,
