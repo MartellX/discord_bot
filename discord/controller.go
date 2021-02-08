@@ -85,8 +85,8 @@ func initRouter(session *discordgo.Session) {
 	router.RegisterCmd(&dgc.Command{
 		Name:        "vkplay",
 		Aliases:     []string{"vkp"},
-		Description: "Добавляет первый найденный трек по названию или плейлист по ссылке",
-		Usage:       "vkplay <текстовый запрос или ссылка на плейлист>",
+		Description: "Добавляет первый найденный трек по названию, плейлист по ссылке.",
+		Usage:       "vkplay <текстовый запрос, ссылка на плейлист или ссылка на чьи-то аудиозаписи> [число - сколько треков добавить]",
 		Example: "vkplay Infected Mushrooms - Only Solutions\n" +
 			router.Prefixes[0] + "vkp https://vk.com/music/album/-2000075157_10075157_62f69f45ff137f5bba\n" +
 			router.Prefixes[0] + "vkplay https://vk.com/im?sel=152367856&z=audio_playlist-2000566053_3566053%2F28236d5f2ea5d5eef5",
@@ -160,7 +160,7 @@ func initRouter(session *discordgo.Session) {
 
 	router.RegisterCmd(&dgc.Command{
 		Name:        "clear",
-		Aliases:     []string{"s"},
+		Aliases:     []string{"cl"},
 		Description: "Очищает очередь",
 		Usage:       "clear",
 		Flags:       nil,

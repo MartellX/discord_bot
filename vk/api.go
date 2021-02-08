@@ -59,6 +59,9 @@ func init() {
 
 	proxiesStr, ok := os.LookupEnv("PROXIES")
 	if ok {
+		if CheckCountry() == "RU" {
+			return
+		}
 		proxies = strings.Split(proxiesStr, ";")
 		rand.Shuffle(len(proxies), func(i, j int) {
 			proxies[i], proxies[j] = proxies[j], proxies[i]
@@ -86,7 +89,6 @@ func SwitchProxy() (bool, error) {
 		proxyIndex %= len(proxies)
 		if connectProxy(proxies[proxyIndex]) {
 			return true, nil
-			break
 		}
 		client = http.Client{
 			Timeout: timeout,
@@ -130,29 +132,7 @@ func connectProxy(proxyURL string) bool {
 		fmt.Println(string(body))
 
 		// Checking vk
-		u, err := url.Parse("https://api.vk.com/method/account.getInfo")
-		if err != nil {
-			fmt.Println(err)
-			return false
-		}
-
-		query := u.Query()
-		query.Add("access_token", token)
-		query.Add("v", "5.126")
-		u.RawQuery = query.Encode()
-		request, err := http.NewRequest(http.MethodGet, u.String(), nil)
-		if err != nil {
-			fmt.Println(err)
-			return false
-		}
-		responseVk, err := client.Do(request)
-		if err != nil {
-			fmt.Println(err)
-			return false
-		}
-		body, _ = ioutil.ReadAll(responseVk.Body)
-		fmt.Println(gjson.GetBytes(body, "response.country").Str)
-
+		CheckCountry()
 		_, err = SearchAudio("Infected")
 		if err != nil {
 			fmt.Println(err)
@@ -162,6 +142,33 @@ func connectProxy(proxyURL string) bool {
 		fmt.Println("Подключение успешно")
 		return true
 	}
+}
+
+func CheckCountry() string {
+	u, err := url.Parse("https://api.vk.com/method/account.getInfo")
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	query := u.Query()
+	query.Add("access_token", token)
+	query.Add("v", "5.126")
+	u.RawQuery = query.Encode()
+	request, err := http.NewRequest(http.MethodGet, u.String(), nil)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	responseVk, err := client.Do(request)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	body, _ := ioutil.ReadAll(responseVk.Body)
+	country := gjson.GetBytes(body, "response.country").Str
+	fmt.Println(country)
+	return country
 }
 
 func getKateToken(login, password string) string {
@@ -204,10 +211,6 @@ func (tr Track) String() string {
 func (tr Track) GetDuration() time.Duration {
 	dur, _ := time.ParseDuration(strconv.FormatInt(tr.Duration, 10) + "s")
 	return dur
-}
-
-func GetAudioById(id string) {
-
 }
 
 func SearchAudio(search string) (result []*Track, err error) {
@@ -267,7 +270,7 @@ func SearchAudio(search string) (result []*Track, err error) {
 
 }
 
-func GetPlaylist(rawurl string) (result []*Track, err error) {
+func GetPlaylist(rawurl string, n int) (result []*Track, err error) {
 
 	owner_id, album_id, access_key, err := getPlaylistParamsFromUrl(rawurl)
 
@@ -288,6 +291,14 @@ func GetPlaylist(rawurl string) (result []*Track, err error) {
 	query.Add("album_id", album_id)
 	query.Add("access_key", access_key)
 	query.Add("v", "5.126")
+
+	if album_id == "" && access_key == "" {
+		if n <= 0 {
+			query.Add("count", "10")
+		} else {
+			query.Add("count", strconv.Itoa(n))
+		}
+	}
 	u.RawQuery = query.Encode()
 
 	request, err := http.NewRequest(http.MethodGet, u.String(), nil)
@@ -339,18 +350,23 @@ func getPlaylistParamsFromUrl(rawurl string) (owner_id, album_id, access_key str
 	query := u.Query().Get("z")
 	if query == "" {
 		path := u.Path
-		if !strings.Contains(path, "/album/") {
+		if !strings.Contains(path, "/album/") && !strings.Contains(path, "/playlist/") && !strings.Contains(path, "/audios") {
 			return "", "", "", errors.New("неизвестная ссылка")
 		}
 
 		paths := strings.Split(path, "/")
-
+		if strings.Contains(path, "/audios") {
+			return strings.Replace(paths[len(paths)-1], "audios", "", 1), "", "", nil
+		}
 		params := strings.Split(paths[len(paths)-1], "_")
 
-		if len(params) != 3 {
+		if len(params) < 2 {
 			return "", "", "", errors.New("не удалось считать ссылку")
 		}
-		owner_id, album_id, access_key = params[0], params[1], params[2]
+		owner_id, album_id = params[0], params[1]
+		if len(params) > 2 {
+			access_key = params[2]
+		}
 	} else {
 		if !strings.Contains(query, "audio_playlist") {
 			return "", "", "", errors.New("неизвестная ссылка")
@@ -359,10 +375,13 @@ func getPlaylistParamsFromUrl(rawurl string) (owner_id, album_id, access_key str
 		query = strings.Replace(query, "/", "_", 1)
 		params := strings.Split(query, "_")
 
-		if len(params) != 3 {
+		if len(params) < 2 {
 			return "", "", "", errors.New("не удалось считать ссылку")
 		}
-		owner_id, album_id, access_key = params[0], params[1], params[2]
+		owner_id, album_id = params[0], params[1]
+		if len(params) > 2 {
+			access_key = params[2]
+		}
 	}
 
 	return owner_id, album_id, access_key, nil

@@ -29,7 +29,7 @@ func onHelp(ctx *dgc.Ctx) {
 			}
 
 			if i == 0 {
-				message.Description = "Напишите `yo help <имя команды>` для помощи по конкректной команде\n" +
+				message.Description = "Напишите `yo help <имя команды>` для помощи по конкректной команде.\n" +
 					"Для получения большинства треков с вк используется прокси (если оно задано), поэтому иногда ответы могут быть долгими (до 20 минут). " +
 					"Используйте `yo changeproxy` для попытки смены прокси. Прокси используется только для получения информации с ВК, не для воспроизведения и всего остального."
 			}
@@ -92,7 +92,7 @@ func onPlay(ctx *dgc.Ctx) {
 	sess := ctx.Session
 	event := ctx.Event
 
-	searchArg := ctx.Arguments.Raw()
+	searchArg := ctx.Arguments.Get(0).Raw()
 
 	fmt.Println("Gettin argument: " + searchArg)
 	var tracks []*vk.Track
@@ -102,7 +102,12 @@ func onPlay(ctx *dgc.Ctx) {
 		tracks, err = vk.SearchAudio(searchArg)
 	} else {
 		fmt.Println("This is playlist")
-		tracks, err = vk.GetPlaylist(searchArg)
+		n := -1
+		n, err = ctx.Arguments.Get(1).AsInt()
+		if err != nil {
+			n = -1
+		}
+		tracks, err = vk.GetPlaylist(searchArg, n)
 		isPlaylist = true
 	}
 	if err != nil {
