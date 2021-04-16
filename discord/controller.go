@@ -1,14 +1,14 @@
 package discord
 
 import (
+	"MartellX/discord_bot/config"
 	"fmt"
 	"github.com/Kintar/dgc"
 	"github.com/bwmarrin/discordgo"
-	"os"
 	"strings"
 )
 
-var token, _ = os.LookupEnv("DISCORD_TOKEN")
+var token = config.Cfg.DISCORDTOKEN
 
 var (
 	discordSession *discordgo.Session
@@ -16,6 +16,10 @@ var (
 )
 
 func Init() {
+	if token == "" {
+		panic("Discord token is not set!")
+	}
+
 	ds, err := discordgo.New("Bot " + token)
 	if err != nil {
 		fmt.Println("Error creating Discord session: ", err)

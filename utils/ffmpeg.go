@@ -1,13 +1,13 @@
 package utils
 
 import (
+	"MartellX/discord_bot/config"
 	"bufio"
 	"encoding/binary"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
-	"runtime"
 	"strconv"
 	"time"
 
@@ -17,15 +17,11 @@ import (
 var ffmpegPath string
 
 func init() {
-	if runtime.GOOS == "windows" {
-		ffmpegPath = "ffmpeg.exe"
+	path := config.Cfg.FFMPEGPATH
+	if path == "" {
+		panic("Ffmpeg path is not set")
 	} else {
-		path, ok := os.LookupEnv("FFMPEG_PATH")
-		if !ok {
-			ffmpegPath = "ffmpeg"
-		} else {
-			ffmpegPath = path
-		}
+		ffmpegPath = path
 	}
 }
 

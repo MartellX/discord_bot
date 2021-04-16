@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+
 	discord.Init()
 	fmt.Println("YoBot is running")
 	fmt.Println("Press CTRL-C to exit.")

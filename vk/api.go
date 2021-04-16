@@ -1,6 +1,7 @@
 package vk
 
 import (
+	"MartellX/discord_bot/config"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,7 +20,7 @@ import (
 	"time"
 )
 
-var token, _ = os.LookupEnv("VK_TOKEN")
+var token = config.Cfg.VKTOKEN
 var login, _ = os.LookupEnv("VK_LOGIN")
 var passwd, _ = os.LookupEnv("VK_PASSWD")
 var useragent = "KateMobileAndroid/56 lite-460 (Android 4.4.2; SDK 19; x86; unknown Android SDK built for x86; en)"
@@ -55,6 +56,10 @@ func init() {
 			}
 			time.Sleep(time.Second * 20)
 		}
+	}
+
+	if token == "" {
+		panic("VK token is not set!")
 	}
 
 	proxiesStr, ok := os.LookupEnv("PROXIES")
